@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html,
+        body,
+        ul,
+        a {
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+        }
+
+        ul,
+        a,
+        ol {
+            list-style: none;
+        }
+
+        li {
+            width: 100%;
+            border-bottom: 1px solid #ccc;
+            line-height: 36px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .container a {
+            padding: 10px;
+            border-bottom: 1px #ccc soad;
+        }
+
+        .page {
+            display: flex;
+            width: 80%;
+            font-size: 0px;
+            margin: 30px auto;
+            text-align: center;
+            justify-content: center;
+        }
+
+        #page-bar a {
+            display: inane-block;
+            margin-left: -1px;
+            font-size: 12px;
+            line-height: 2;
+            padding: 0 5px;
+            min-width: 1em;
+            text-align: center;
+            border: 1px #ccc soad;
+            cursor: pointer;
+            color: #000;
+        }
+
+        .nolink {
+            color: #ccc !important;
+        }
+
+        .active {
+            color: #f60 !important;
+        }
+
+        #page-bar span {
+            font-size: 12px;
+            padding: 0 10px;
+        }
+
+        #pagesize a {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            margin-right: 2px;
+            border: 1px #ccc solid;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        #page-bar a:hover {
+            border-color: #f60;
+            background: #f60;
+            color: #fff;
+        }
+
+        input {
+            width: 25px;
+            height: 15px;
+            margin-right: 4px;
+            font-size: 12px;
+        }
+
+        button {
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <ul class="container" id="container">
+    </ul>
+    <div class="page">
+        <div id="page-bar">
+
+        </div>
+        <div class="blink">
+            <input type="text" class="inp">
+            <button class="blink" type="button">跳转至</button>
+        </div>
+    </div>
+    <div class="page-size">显示:<span id="pagesize"></span>条/页</div>
+    <script src="./index.js"></script>
+    <script>
+        let oBlink = document.querySelector(".blink"),
+            oCon = document.querySelector(".container"),
+            pageBar = document.querySelector("#page-bar"),
+            pageSizeShow = document.querySelector("#pagesize")
+        //定义构造函数
+        function Paging(obj, name) {
+            this.name = name
+            data = obj
+            this.data = []
+            this.pageShow = [1, 2, 4, 5, 6] //定义渲染条数
+            this.pageShowIndex = 0 //定义渲染条数下标
+            this.page = 1 //定义初始页码
+            //指定this指向
+            _this = this
+            data.data.forEach((item, index) => {
+                this.data.push(item.content.substr(0, 15)) //获取渲染数据
+            });
+            this.totalPage = Math.ceil(this.data.length / this.pageShow[this.pageShowIndex]) //定义总页数
+            // this.show(this.page, this.pageShow, this.pageShowIndex) //调用渲染函数
+            this.pageSize(this.totalPage, this.page, pageBar, this.name)
+            // console.log(this.page);
+        }
+        //定义渲染条数函数
+        Paging.prototype.show = function (page, pageShow, pageShowIndex) {
+            let url = window.location.href
+            let num = Number(this.getUrl(url).pageShow)
+            if (num) {
+                pageShow[pageShowIndex] = num
+            }
+            this.totalPage = Math.ceil(this.data.length / this.pageShow[this.pageShowIndex]) //定义总页数
+            let tmp = ``
+            if (page * pageShow[pageShowIndex] > _this.data.length) {
+                for (let i = (page - 1) * pageShow[pageShowIndex]; i < _this.data.length; i++) {
+                    tmp += `<li> ${this.data[i]}</li>`
+                }
+            } else {
+                for (let i = (page - 1) * pageShow[pageShowIndex]; i < page * pageShow[pageShowIndex]; i++) {
+                    tmp += `<li> ${this.data[i]}</li>`
+                }
+            }
+            oCon.innerHTML += tmp
+        }
+        //定义页码函数
+        Paging.prototype.pageSize = function (totalPage, page, pagBar, name, ind, string) {
+            //初始化页面渲染条数数组的下标值
+            let pageInd = 0
+            //定义当前页的page
+            let nowPage
+            //获取网址
+            let url = window.location.href
+            //获取当前页的page,此处可以不需要，使用赋值后的page值就可以了
+            // if (Number(this.getUrl(url).page)) {
+            //     nowPage = Number(this.getUrl(url).page)
+            // } else {
+            //     nowPage = 1
+            // }
+            //获取显示条数数组的下标值
+            if (Number(this.getUrl(url).pageShow).toString() !== "NaN") {
+                showPage = this.pageShow.indexOf(Number(this.getUrl(url).pageShow))
+            } else {
+                showPage = 0
+            }
+            //重新计算总页数，给页码page进行赋值
+            let str = ``
+            this.totalPage = Math.ceil(this.data.length / _this.pageShow[showPage]) //定义总页数
+            if (window.location.search !== "") {
+                if (Number(window.location.search.split("?").join("").split("=").join("").split("&")[0].substr(
+                        4)) <= this.totalPage && window.location.search.split("?")[1].split("=")[0] === "page") {
+                    page = window.location.search.split("?").join("").split("=").join("").split("&")[0].substr(4)
+                } else if (Number(window.location.search.split("?").join("").split("=").join("").split("&")[0]
+                        .substr(
+                            4)) >= this.totalPage) {
+                    page = this.totalPage
+                }
+            } else {
+                page = 1
+            }
+            //渲染页面条数值
+            let strBar = ``
+            for (let i = 0; i < this.pageShow.length; i++) {
+                strBar += `<a>${this.pageShow[i]}</a>`
+            }
+            pageSizeShow.innerHTML = strBar
+
+            //注意：上面赋值的操作page的属性是string，需要转化为number
+            page = Number(page)
+
+            //向渲染函数传入页码，pageShow渲染条数数组和初始化渲染条数的下标值
+            this.show(page, this.pageShow, pageInd)
+            //页码渲染
+            //当前页数等于1时，固定首页和上一页，并且无法再跳转
+            if (page === 1) {
+                str += ` <a href="javascript:;" class="nolink">首页</a>`;
+                str += `<a href="javascript:;" class="nolink">上一页</a>`;
+            }
+
+            //当前页数大于1时，点击首页返回第一页，点击上一页，当前页的page值减1
+            if (page > 1) {
+                str += ` <a href="${this.setUrl({page:1,pageShow:_this.pageShow[showPage]})}">首页</a>`;
+                str += `<a href="${this.setUrl({page:page-1,pageShow:_this.pageShow[showPage]})}">上一页</a>`;
+            }
+            //渲染所有页码
+            //当总页数在3-6之间时，执行此方法
+            if (this.totalPage > 3 && this.totalPage <= 6) {
+                for (let i = 1; i < this.totalPage + 1; i++) {
+                    str += `<a href="javascript:;" >${i}</a>`;
+                }
+            }
+            if ((this.totalPage > 6)) {
+                nowIndex=1
+                endIndex=nowIndex+3
+                if (page >= nowIndex && page <= endIndex) {
+                    for (let i = 1; i <= 4; i++) {
+                        str += `<a href="javascript:;" >${i}</a>`;
+                    }
+                    if (page===endIndex) {
+                        str += `<a href="javascript:;" >${++endIndex}</a>`;
+                    }
+                    str += `<span>...</span>`;
+                    str += `<a href="javascript:;">${this.totalPage}</a>`;
+                }
+                if (page > 4&&page<=this.totalPage-4) {
+                    str += `<a href="javascript:;" >1</a>`;
+                    str += `<span>...</span>`; 
+                    str += `<a href="javascript:;" >${page-1}</a>`;
+                    str += `<a href="javascript:;" >${page}</a>`;
+                    str += `<a href="javascript:;" >${page+1}</a>`;
+                    str += `<span>...</span>`;
+                    str += `<a href="javascript:;">${this.totalPage}</a>`;
+                }
+                if (page > this.totalPage-4&&page <= this.totalPage) {
+                    str += `<a href="javascript:;" >1</a>`;
+                    str += `<span>...</span>`; 
+                    for (let i = this.totalPage - 3; i <= this.totalPage; i++) {
+                        str += `<a href="javascript:;" >${i}</a>`;
+                    }
+                }
+            }
+            //当前页数小于总页数时，点击尾页返回最后一页，点击下一页，当前页的page值加1
+            if (page < this.totalPage) {
+                str += `<a href="${this.setUrl({page:page+1,pageShow:_this.pageShow[showPage]})}">下一页</a>`;
+                str += `<a  href="${this.setUrl({page: this.totalPage,pageShow:_this.pageShow[showPage]})}">尾页</a>`;
+            }
+            //当前页数等于总页数时，固定尾页和下一页，并且无法再跳转
+            if (page == this.totalPage) {
+                str += `<a href="javascript:;" class="nolink">下一页</a>`;
+                str += `<a href="javascript:;" class="nolink">尾页</a>`;
+            }
+            //渲染生成
+            pageBar.innerHTML = str
+            //页码初始化
+            let aSize = document.querySelectorAll("#page-bar a")
+            aSize.forEach((item, index, arr) => {
+                if (isNaN(item.innerText) !== true) {
+                    if (item.innerText==page) {
+                        item.classList.add("active")
+                    }
+                }
+            })
+            //显示条数初始化
+            let aNum = document.querySelectorAll("#pagesize>a")
+            aNum.forEach((item, index, arr) => {
+                arr[showPage].classList.add("active")
+                item.addEventListener("click", function (ev) {
+                    window.location.search = `?pageShow=${ev.target.innerText}`
+                })
+            })
+            //点击页码跳转
+            pageBar.addEventListener("click", function (ev) {
+                if (ev.target.tagName === "A") {
+                    if (isNaN(ev.target.innerText) !== true) {
+                        if (String(Number(_this.getUrl(url).pageShow)) === "undefined") {
+                            window.location.search = `?page=${ev.target.innerText}&pageShow=${2}`
+                        } else {
+                            window.location.search =
+                                `?page=${ev.target.innerText}&pageShow=${Number(_this.getUrl(url).pageShow)}`
+                        }
+                    }
+                }
+            }, true)
+
+            //调用input框跳转函数
+            let oBtn = document.querySelector("button")
+            oBtn.addEventListener("click", function () {
+                //传入当前的href和显示条数的下标值
+                _this.blink(url, showPage)
+            })
+        }
+        //解析网址，返回一个对象
+        Paging.prototype.getUrl = function (href) {
+            let url = href
+            let args = {}
+            let name, value
+            if (href) {
+                if (url.includes("?")) {
+                    let str = url.split("?")[1];
+                    let str2 = str.split("&")
+                    str2.forEach((item, index) => {
+                        name = item.split("=")[0]
+                        value = item.split("=")[1]
+                        args[name] = value
+                    })
+                }
+            }
+            return args;
+        }
+        //设置网页查询参数，返回一个字符串
+        Paging.prototype.setUrl = function (args) {
+            let tmp = ``
+            for (key in args) {
+                if (tmp !== "") {
+                    tmp += `&`
+                }
+                tmp += key + `=` + args[key]
+            }
+            tmp = `?` + tmp
+            return tmp
+        }
+        //页面跳转函数
+        Paging.prototype.blink = function (url, showPage) {
+            let oInp = document.querySelector(".blink>input")
+            this.totalPage = Math.ceil(_this.data.length / _this.pageShow[showPage]) //定义总页数
+            let val = oInp.value
+            if (isNaN(val) !== true) {
+                if (val <= this.totalPage) {
+                    window.location.search = `?page=${val}&pageShow=${Number(_this.getUrl(url).pageShow)}`
+                }
+            }
+        }
+
+
+        let list1 = new Paging(result, "list1")
+    </script>
+    </body>
+
+</html>
